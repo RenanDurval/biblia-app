@@ -14,6 +14,7 @@ import BookmarksScreen from './src/screens/BookmarksScreen';
 import ProgressScreen from './src/screens/ProgressScreen';
 import HymnsScreen from './src/screens/HymnsScreen';
 import HymnViewerScreen from './src/screens/HymnViewerScreen';
+import ReadingPlansScreen from './src/screens/ReadingPlansScreen';
 
 const Stack = createStackNavigator();
 
@@ -35,6 +36,7 @@ export default function App() {
         <Stack.Screen name="Progress" component={ProgressScreen} />
         <Stack.Screen name="Hymns" component={HymnsScreen} />
         <Stack.Screen name="HymnViewer" component={HymnViewerScreen} />
+        <Stack.Screen name="ReadingPlans" component={ReadingPlansScreen} />
         <Stack.Screen name="Settings" component={SettingsScreen} />
       </Stack.Navigator>
     </NavigationContainer>

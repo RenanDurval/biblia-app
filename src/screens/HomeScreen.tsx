@@ -141,6 +141,12 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
                         theme={theme}
                     />
                     <FeatureButton
+                        icon="📅"
+                        title="Planos de Leitura"
+                        onPress={() => navigation.navigate('ReadingPlans')}
+                        theme={theme}
+                    />
+                    <FeatureButton
                         icon="📊"
                         title="Progresso"
                         onPress={() => navigation.navigate('Progress')}

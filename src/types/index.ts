@@ -79,3 +79,11 @@ export interface TalmudPage {
     text: string;
 }
 
+export interface VerseHighlight {
+    id: string;
+    bookId: number;
+    chapterNumber: number;
+    verseNumber: number;
+    color: 'yellow' | 'green' | 'blue' | 'pink' | 'orange';
+    createdAt: string;
+}

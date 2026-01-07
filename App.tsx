@@ -11,6 +11,7 @@ import ReadingScreen from './src/screens/ReadingScreen';
 import SearchScreen from './src/screens/SearchScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 import BookmarksScreen from './src/screens/BookmarksScreen';
+import ProgressScreen from './src/screens/ProgressScreen';
 
 const Stack = createStackNavigator();
 
@@ -29,6 +30,7 @@ export default function App() {
         <Stack.Screen name="Reading" component={ReadingScreen} />
         <Stack.Screen name="Search" component={SearchScreen} />
         <Stack.Screen name="Bookmarks" component={BookmarksScreen} />
+        <Stack.Screen name="Progress" component={ProgressScreen} />
         <Stack.Screen name="Settings" component={SettingsScreen} />
       </Stack.Navigator>
     </NavigationContainer>

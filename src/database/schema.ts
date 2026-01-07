@@ -84,6 +84,18 @@ CREATE TABLE IF NOT EXISTS bookmarks (
   FOREIGN KEY (book_id) REFERENCES books(id)
 );
 
+-- Verse Highlights (marker/highlighter)
+CREATE TABLE IF NOT EXISTS verse_highlights (
+  id TEXT PRIMARY KEY,
+  book_id INTEGER NOT NULL,
+  chapter_number INTEGER NOT NULL,
+  verse_number INTEGER NOT NULL,
+  color TEXT NOT NULL, -- 'yellow', 'green', 'blue', 'pink', 'orange'
+  created_at TEXT NOT NULL,
+  FOREIGN KEY (book_id) REFERENCES books(id),
+  UNIQUE(book_id, chapter_number, verse_number)
+);
+
 -- Reading History
 CREATE TABLE IF NOT EXISTS reading_history (
   id TEXT PRIMARY KEY,

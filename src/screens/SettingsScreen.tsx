@@ -183,6 +183,78 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
                     )}
                 </View>
 
+                {/* Backup & Restore */}
+                <View style={styles.section}>
+                    <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+                        Backup & Restauração
+                    </Text>
+
+                    <TouchableOpacity
+                        style={[styles.backupButton, { backgroundColor: theme.colors.primary }]}
+                        onPress={async () => {
+                            const { exportBackup, getBackupStats } = await import('../services/backupService');
+                            const stats = await getBackupStats();
+
+                            Alert.alert(
+                                '📤 Exportar Backup',
+                                `Serão exportados:\n• ${stats.bookmarks} favoritos\n• ${stats.highlights} destaques\n• ${stats.historyEntries} leituras\n\nDeseja continuar?`,
+                                [
+                                    { text: 'Cancelar', style: 'cancel' },
+                                    {
+                                        text: 'Exportar',
+                                        onPress: async () => {
+                                            const success = await exportBackup();
+                                            if (success) {
+                                                Alert.alert('✅ Sucesso', 'Backup exportado! Salve o arquivo em um local seguro.');
+                                            } else {
+                                                Alert.alert('❌ Erro', 'Não foi possível exportar o backup.');
+                                            }
+                                        }
+                                    }
+                                ]
+                            );
+                        }}
+                    >
+                        <Text style={styles.backupButtonText}>
+                            📤 Exportar Backup
+                        </Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                        style={[styles.backupButton, { backgroundColor: theme.colors.surface, borderWidth: 2, borderColor: theme.colors.primary }]}
+                        onPress={async () => {
+                            Alert.alert(
+                                '📥 Importar Backup',
+                                'Isso irá ADICIONAR os dados do backup aos seus dados atuais. Deseja continuar?',
+                                [
+                                    { text: 'Cancelar', style: 'cancel' },
+                                    {
+                                        text: 'Importar',
+                                        onPress: async () => {
+                                            const { importBackup } = await import('../services/backupService');
+                                            const result = await importBackup();
+
+                                            if (result.success) {
+                                                Alert.alert('✅ Sucesso', result.message);
+                                            } else {
+                                                Alert.alert('❌ Erro', result.message);
+                                            }
+                                        }
+                                    }
+                                ]
+                            );
+                        }}
+                    >
+                        <Text style={[styles.backupButtonText, { color: theme.colors.primary }]}>
+                            📥 Importar Backup
+                        </Text>
+                    </TouchableOpacity>
+
+                    <Text style={[styles.backupHint, { color: theme.colors.textSecondary }]}>
+                        💡 Salve o arquivo de backup no Google Drive, WhatsApp ou Email para não perder seus dados!
+                    </Text>
+                </View>
+
                 {/* About */}
                 <View style={styles.section}>
                     <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
@@ -279,5 +351,27 @@ const styles = StyleSheet.create({
         fontSize: 14,
         textAlign: 'center',
         lineHeight: 20,
+    },
+    backupButton: {
+        padding: 16,
+        borderRadius: 12,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3,
+    },
+    backupButtonText: {
+        color: '#FFF',
+        fontSize: 16,
+        fontWeight: '600',
+    },
+    backupHint: {
+        fontSize: 12,
+        textAlign: 'center',
+        marginTop: 8,
+        fontStyle: 'italic',
+        lineHeight: 18,
     },
 });

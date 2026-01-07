@@ -42,6 +42,7 @@ export async function exportBackup(): Promise<boolean> {
 
         // Create file
         const fileName = `biblia_backup_${new Date().toISOString().split('T')[0]}.json`;
+        // @ts-ignore - cacheDirectory exists at runtime
         const fileUri = `${FileSystem.cacheDirectory}${fileName}`;
 
         await FileSystem.writeAsStringAsync(fileUri, jsonData);

@@ -135,6 +135,12 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
                 {/* Features */}
                 <View style={styles.features}>
                     <FeatureButton
+                        icon="🎵"
+                        title="Harpa Cristã"
+                        onPress={() => navigation.navigate('Hymns')}
+                        theme={theme}
+                    />
+                    <FeatureButton
                         icon="📊"
                         title="Progresso"
                         onPress={() => navigation.navigate('Progress')}

@@ -107,13 +107,23 @@ CREATE TABLE IF NOT EXISTS reading_history (
 
 -- User Settings
 CREATE TABLE IF NOT EXISTS user_settings (
-  id INTEGER PRIMARY KEY CHECK (id = 1),
+  id INTEGER PRIMARY KEY,
   preferred_version TEXT DEFAULT 'acf',
   preferred_language TEXT DEFAULT 'pt',
   font_size INTEGER DEFAULT 16,
-  theme TEXT DEFAULT 'light' CHECK(theme IN ('light', 'dark', 'auto')),
+  theme TEXT DEFAULT 'auto',
   notifications_enabled INTEGER DEFAULT 1,
   notification_time TEXT DEFAULT '08:00'
+);
+
+-- Hymns table (Harpa Cristã)
+CREATE TABLE IF NOT EXISTS hymns (
+  id INTEGER PRIMARY KEY,
+  number INTEGER NOT NULL UNIQUE,
+  title TEXT NOT NULL,
+  lyrics TEXT NOT NULL,
+  category TEXT,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Daily Verses Cache
@@ -130,6 +140,7 @@ CREATE INDEX IF NOT EXISTS idx_verses_book_chapter ON verses(book_id, chapter_nu
 CREATE INDEX IF NOT EXISTS idx_verses_version ON verses(version_id);
 CREATE INDEX IF NOT EXISTS idx_bookmarks_book ON bookmarks(book_id);
 CREATE INDEX IF NOT EXISTS idx_history_timestamp ON reading_history(timestamp);
+CREATE INDEX IF NOT EXISTS idx_hymns_number ON hymns(number);
 `;
 
 export const insertInitialData = `

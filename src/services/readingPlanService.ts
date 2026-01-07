@@ -68,7 +68,7 @@ export async function startReadingPlan(planId: number): Promise<void> {
 /**
  * Get reading for specific day
  */
-export async function getReadingForDay(plano: number, day: number): Promise<ReadingPlanDay | null> {
+export async function getReadingForDay(planId: number, day: number): Promise<ReadingPlanDay | null> {
     const db = getDatabase();
     const reading = await db.getFirstAsync(
         'SELECT * FROM reading_plan_days WHERE plan_id = ? AND day_number = ?',

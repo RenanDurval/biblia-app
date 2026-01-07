@@ -8,6 +8,8 @@ import {
     StyleSheet,
     useColorScheme,
     SafeAreaView,
+    ActivityIndicator,
+    Modal,
 } from 'react-native';
 import { createTheme } from '../styles/theme';
 import DailyVerseCard from '../components/DailyVerseCard';
@@ -20,7 +22,10 @@ interface HomeScreenProps {
 
 export default function HomeScreen({ navigation }: HomeScreenProps) {
     const colorScheme = useColorScheme();
-    const [dbInitialized, setDbInitialized] = useState(false);
+    const [dailyVerse, setDailyVerse] = useState<(Verse & { book?: Book }) | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [loadingBible, setLoadingBible] = useState(false);
+    const [bibleProgress, setBibleProgress] = useState({ current: 0, total: 0, book: '' });
     const theme = createTheme(colorScheme === 'dark');
 
     useEffect(() => {
@@ -31,7 +36,19 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
         try {
             // Initialize database
             await initDatabase();
-            setDbInitialized(true);
+
+            // Check if Bible is loaded
+            const { isBibleLoaded, loadCompleteBible } = await import('../services/completeBibleLoader');
+            const isLoaded = await isBibleLoaded();
+
+            if (!isLoaded) {
+                // Show loading modal and download Bible
+                setLoadingBible(true);
+                await loadCompleteBible((current, total, bookName) => {
+                    setBibleProgress({ current, total, book: bookName });
+                });
+                setLoadingBible(false);
+            }
 
             // Request notification permissions
             const hasPermission = await requestNotificationPermissions();
@@ -40,14 +57,17 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
             }
         } catch (error) {
             console.error('Error initializing app:', error);
+        } finally {
+            setLoading(false);
         }
     };
 
-    if (!dbInitialized) {
+    if (loading) {
         return (
             <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-                <Text style={[styles.title, { color: theme.colors.text }]}>
-                    Carregando Bíblia Sagrada...
+                <Activity Indicator size="large" color={theme.colors.primary} />
+                <Text style={[styles.title, { color: theme.colors.text, marginTop: 16 }]}>
+                    Inicializando...
                 </Text>
             </View>
         );
@@ -141,6 +161,27 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
                     />
                 </View>
             </ScrollView>
+
+            {/* Bible Loading Modal */}
+            <Modal visible={loadingBible} transparent animationType="fade">
+                <View style={styles.modalOverlay}>
+                    <View style={[styles.modalContent, { backgroundColor: theme.colors.surface }]}>
+                        <Text style={[styles.modalTitle, { color: theme.colors.text }]}>
+                            📥 Baixando Bíblia Completa
+                        </Text>
+                        <Text style={[styles.modalProgress, { color: theme.colors.primary }]}>
+                            {bibleProgress.current} / {bibleProgress.total}
+                        </Text>
+                        <Text style={[styles.modalBook, { color: theme.colors.textSecondary }]}>
+                            {bibleProgress.book}
+                        </Text>
+                        <ActivityIndicator size="large" color={theme.colors.primary} style={{ marginTop: 16 }} />
+                        <Text style={[styles.modalHint, { color: theme.colors.textSecondary }]}>
+                            Isso acontece apenas uma vez
+                        </Text>
+                    </View>
+                </View>
+            </Modal>
         </SafeAreaView>
     );
 }
@@ -266,5 +307,38 @@ const styles = StyleSheet.create({
     featureTitle: {
         fontSize: 16,
         fontWeight: '600',
+    },
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.7)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    modalContent: {
+        width: '80%',
+        padding: 32,
+        borderRadius: 16,
+        alignItems: 'center',
+    },
+    modalTitle: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        marginBottom: 16,
+        textAlign: 'center',
+    },
+    modalProgress: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        marginBottom: 8,
+    },
+    modalBook: {
+        fontSize: 14,
+        marginBottom: 8,
+    },
+    modalHint: {
+        fontSize: 12,
+        marginTop: 16,
+        fontstyle: 'italic',
+        textAlign: 'center',
     },
 });

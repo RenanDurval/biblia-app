@@ -22,7 +22,6 @@ interface HomeScreenProps {
 
 export default function HomeScreen({ navigation }: HomeScreenProps) {
     const colorScheme = useColorScheme();
-    const [dailyVerse, setDailyVerse] = useState<(Verse & { book?: Book }) | null>(null);
     const [loading, setLoading] = useState(true);
     const [loadingBible, setLoadingBible] = useState(false);
     const [bibleProgress, setBibleProgress] = useState({ current: 0, total: 0, book: '' });
@@ -65,7 +64,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
     if (loading) {
         return (
             <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-                <Activity Indicator size="large" color={theme.colors.primary} />
+                <ActivityIndicator size="large" color={theme.colors.primary} />
                 <Text style={[styles.title, { color: theme.colors.text, marginTop: 16 }]}>
                     Inicializando...
                 </Text>
@@ -338,7 +337,7 @@ const styles = StyleSheet.create({
     modalHint: {
         fontSize: 12,
         marginTop: 16,
-        fontstyle: 'italic',
+        fontStyle: 'italic',
         textAlign: 'center',
     },
 });

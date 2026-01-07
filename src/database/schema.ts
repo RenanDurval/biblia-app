@@ -135,12 +135,44 @@ CREATE TABLE IF NOT EXISTS daily_verses (
   FOREIGN KEY (verse_id) REFERENCES verses(id)
 );
 
+-- Reading Plans (Planos de Leitura)
+CREATE TABLE IF NOT EXISTS reading_plans (
+  id INTEGER PRIMARY KEY,
+  name TEXT NOT NULL,
+  description TEXT,
+  duration_days INTEGER NOT NULL,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Reading Plan Days
+CREATE TABLE IF NOT EXISTS reading_plan_days (
+  id INTEGER PRIMARY KEY,
+  plan_id INTEGER NOT NULL,
+  day_number INTEGER NOT NULL,
+  readings TEXT NOT NULL, -- JSON: [{"book_id": 1, "chapter_start": 1, "chapter_end": 3}]
+  completed INTEGER DEFAULT 0,
+  completed_at TEXT,
+  FOREIGN KEY (plan_id) REFERENCES reading_plans(id)
+);
+
+-- User reading plan progress
+CREATE TABLE IF NOT EXISTS user_reading_progress (
+  id INTEGER PRIMARY KEY,
+  plan_id INTEGER NOT NULL,
+  current_day INTEGER DEFAULT 1,
+  started_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  last_read_at TEXT,
+  FOREIGN KEY (plan_id) REFERENCES reading_plans(id)
+);
+
 -- Create indexes for performance
 CREATE INDEX IF NOT EXISTS idx_verses_book_chapter ON verses(book_id, chapter_number);
 CREATE INDEX IF NOT EXISTS idx_verses_version ON verses(version_id);
 CREATE INDEX IF NOT EXISTS idx_bookmarks_book ON bookmarks(book_id);
 CREATE INDEX IF NOT EXISTS idx_history_timestamp ON reading_history(timestamp);
 CREATE INDEX IF NOT EXISTS idx_hymns_number ON hymns(number);
+CREATE INDEX IF NOT EXISTS idx_reading_plan_days ON reading_plan_days(plan_id, day_number);
+CREATE INDEX IF NOT EXISTS idx_user_reading_progress ON user_reading_progress(plan_id);
 `;
 
 export const insertInitialData = `

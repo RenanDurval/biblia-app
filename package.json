@@ -14,6 +14,7 @@
     "@react-navigation/stack": "^7.6.13",
     "expo": "~54.0.31",
     "expo-ads-admob": "^13.0.0",
+    "expo-asset": "^12.0.12",
     "expo-constants": "~18.0.13",
     "expo-device": "~8.0.10",
     "expo-document-picker": "^14.0.8",

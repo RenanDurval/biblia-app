@@ -87,3 +87,19 @@ export interface VerseHighlight {
     color: 'yellow' | 'green' | 'blue' | 'pink' | 'orange';
     createdAt: string;
 }
+
+// Navigation Types
+import { Hymn } from '../services/hymnService';
+
+export type RootStackParamList = {
+    Home: undefined;
+    Library: { filter?: 'bible' | 'torah' | 'quran' | 'apocrypha' };
+    Reading: { bookId: number; chapterNumber: number };
+    Search: undefined;
+    Bookmarks: undefined;
+    Progress: undefined;
+    Hymns: undefined;
+    HymnViewer: { hymn: Hymn };
+    ReadingPlans: undefined;
+    Settings: undefined;
+};

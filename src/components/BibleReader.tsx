@@ -13,7 +13,6 @@ import {
     Pressable,
 } from 'react-native';
 import { getChapterVerses, getBook } from '../services/bibleService';
-import { downloadChapter } from '../services/bibleDownloadService';
 import { getChapterHighlights, addHighlight, removeHighlight, HIGHLIGHT_COLORS } from '../services/highlightService';
 import { Verse, Book, VerseHighlight } from '../types';
 import { createTheme } from '../styles/theme';
@@ -37,7 +36,6 @@ export default function BibleReader({
     const [book, setBook] = useState<Book | null>(null);
     const [highlights, setHighlights] = useState<VerseHighlight[]>([]);
     const [loading, setLoading] = useState(true);
-    const [downloading, setDownloading] = useState(false);
     const [selectedVerse, setSelectedVerse] = useState<number | null>(null);
     const [highlightMenuVerse, setHighlightMenuVerse] = useState<Verse | null>(null);
 
@@ -57,21 +55,8 @@ export default function BibleReader({
                 getChapterHighlights(bookId, chapterNumber),
             ]);
 
-            // If no verses, try to download from API
-            if (versesData.length === 0) {
-                setDownloading(true);
-                const success = await downloadChapter(bookId, chapterNumber, versionId);
-                if (success) {
-                    const newVerses = await getChapterVerses(bookId, chapterNumber, versionId);
-                    setVerses(newVerses);
-                } else {
-                    setVerses([]);
-                }
-                setDownloading(false);
-            } else {
-                setVerses(versesData);
-            }
-
+            // Bible is now pre-loaded from bundled JSON, no need to download
+            setVerses(versesData);
             setBook(bookData);
             setHighlights(highlightsData);
         } catch (error) {
@@ -136,19 +121,7 @@ export default function BibleReader({
         );
     }
 
-    if (downloading) {
-        return (
-            <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-                <ActivityIndicator size="large" color={theme.colors.primary} />
-                <Text style={[styles.loadingText, { color: theme.colors.text }]}>
-                    📥 Baixando capítulo...
-                </Text>
-                <Text style={[styles.downloadHint, { color: theme.colors.textSecondary }]}>
-                    Isso só acontece na primeira vez
-                </Text>
-            </View>
-        );
-    }
+
 
     if (verses.length === 0) {
         return (
@@ -156,7 +129,7 @@ export default function BibleReader({
                 <Text style={[styles.errorText, { color: theme.colors.textSecondary }]}>
                     ❌ Conteúdo não disponível
                     {'\n\n'}
-                    Conecte-se à internet para baixar este capítulo.
+                    Este capítulo ainda não foi carregado no banco de dados.
                 </Text>
             </View>
         );
@@ -205,9 +178,11 @@ export default function BibleReader({
                                     },
                                 ]}
                             >
-                                <Text style={[styles.verseNumber, { color: theme.colors.primary }]}>
-                                    {verse.verseNumber}
-                                </Text>
+                                <View style={styles.verseNumberContainer}>
+                                    <Text style={[styles.verseNumber, { color: theme.colors.primary }]}>
+                                        {verse.verseNumber}
+                                    </Text>
+                                </View>
                                 <Text style={[styles.verseText, { color: theme.colors.text }]}>
                                     {verse.text}
                                 </Text>
@@ -308,14 +283,20 @@ const styles = StyleSheet.create({
         paddingHorizontal: 8,
         borderRadius: 4,
     },
+    verseNumberContainer: {
+        backgroundColor: 'rgba(139, 105, 20, 0.15)',
+        borderRadius: 12,
+        paddingHorizontal: 8,
+        paddingVertical: 2,
+        marginRight: 10,
+        minWidth: 28,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
     verseNumber: {
-        fontSize: 11,
-        fontWeight: '600',
-        color: '#999',
-        marginRight: 12,
-        minWidth: 20,
-        textAlign: 'right',
-        marginTop: 2,
+        fontSize: 12,
+        fontWeight: 'bold',
+        textAlign: 'center',
     },
     verseText: {
         flex: 1,

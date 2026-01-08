@@ -12,6 +12,9 @@
       "resizeMode": "contain",
       "backgroundColor": "#8B6914"
     },
+    "assetBundlePatterns": [
+      "assets/**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.biblia.sagrada"

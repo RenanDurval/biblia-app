@@ -16,7 +16,9 @@ import HymnsScreen from './src/screens/HymnsScreen';
 import HymnViewerScreen from './src/screens/HymnViewerScreen';
 import ReadingPlansScreen from './src/screens/ReadingPlansScreen';
 
-const Stack = createStackNavigator();
+import { RootStackParamList } from './src/types';
+
+const Stack = createStackNavigator<RootStackParamList>();
 
 export default function App() {
   return (

@@ -143,6 +143,13 @@ export default function ReadingScreen({ route, navigation }: ReadingScreenProps)
         }
     };
 
+    // Sync chapter number when navigating between books
+    useEffect(() => {
+        if (route.params?.chapterNumber) {
+            setChapterNumber(route.params.chapterNumber);
+        }
+    }, [route.params?.bookId, route.params?.chapterNumber]);
+
     const handleGoBack = () => {
         if (navigation.canGoBack()) {
             navigation.goBack();
@@ -161,6 +168,16 @@ export default function ReadingScreen({ route, navigation }: ReadingScreenProps)
                             ‹ Voltar
                         </Text>
                     </TouchableOpacity>
+
+                    <View style={styles.headerTitleContainer}>
+                        <Text style={[styles.headerTitle, { color: theme.colors.text }]} numberOfLines={1}>
+                            {book?.name} {chapterNumber}
+                        </Text>
+                    </View>
+
+                    <View style={styles.actionButton}>
+                        {/* Placeholder for future action button if needed */}
+                    </View>
                 </View>
 
                 {/* Bible Reader */}
@@ -235,12 +252,33 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     header: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
         paddingHorizontal: 16,
         paddingVertical: 12,
         borderBottomWidth: 1,
+        elevation: 2,
+        zIndex: 10,
+    },
+    headerTitleContainer: {
+        flex: 1,
+        alignItems: 'center',
+        marginHorizontal: 8,
+    },
+    headerTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        textAlign: 'center',
     },
     backButton: {
-        paddingVertical: 4,
+        padding: 8,
+        minWidth: 60,
+    },
+    actionButton: {
+        padding: 8,
+        minWidth: 40,
+        alignItems: 'flex-end',
     },
     backButtonText: {
         fontSize: 18,

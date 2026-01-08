@@ -80,6 +80,7 @@ export default function BookmarksScreen({ navigation }: BookmarksScreenProps) {
             onPress={() => navigation.navigate('Reading', {
                 bookId: item.bookId,
                 chapterNumber: item.chapterNumber,
+                verseNumber: item.verseNumber, // Pass verse number for auto-scroll
             })}
             activeOpacity={0.7}
         >

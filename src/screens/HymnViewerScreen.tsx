@@ -13,14 +13,10 @@ import {
 import { createTheme } from '../styles/theme';
 import { Hymn } from '../services/hymnService';
 
-interface HymnViewerScreenProps {
-    navigation: any;
-    route: {
-        params: {
-            hymn: Hymn;
-        };
-    };
-}
+import { StackScreenProps } from '@react-navigation/stack';
+import { RootStackParamList } from '../types';
+
+type HymnViewerScreenProps = StackScreenProps<RootStackParamList, 'HymnViewer'>;
 
 export default function HymnViewerScreen({ navigation, route }: HymnViewerScreenProps) {
     const { hymn } = route.params;

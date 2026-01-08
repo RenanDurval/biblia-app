@@ -14,10 +14,10 @@ import { Book } from '../types';
 import { createTheme } from '../styles/theme';
 // import AdBanner from '../components/AdBanner'; // Temporarily disabled for Expo Go
 
-interface LibraryScreenProps {
-    navigation: any;
-    route: any;
-}
+import { StackScreenProps } from '@react-navigation/stack';
+import { RootStackParamList } from '../types';
+
+type LibraryScreenProps = StackScreenProps<RootStackParamList, 'Library'>;
 
 export default function LibraryScreen({ navigation, route }: LibraryScreenProps) {
     const colorScheme = useColorScheme();
@@ -31,7 +31,7 @@ export default function LibraryScreen({ navigation, route }: LibraryScreenProps)
 
     const loadBooks = async () => {
         try {
-            let testament: any = undefined;
+            let testament: 'OT' | 'NT' | 'APOCRYPHA' | 'QURAN' | 'TORAH' | undefined = undefined;
 
             if (filter === 'torah') {
                 testament = 'TORAH';

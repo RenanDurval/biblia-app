@@ -14,9 +14,10 @@ import {
 import { createTheme } from '../styles/theme';
 import { getAllHymns, searchHymns, getHymnCount, Hymn } from '../services/hymnService';
 
-interface HymnsScreenProps {
-    navigation: any;
-}
+import { StackScreenProps } from '@react-navigation/stack';
+import { RootStackParamList } from '../types';
+
+type HymnsScreenProps = StackScreenProps<RootStackParamList, 'Hymns'>;
 
 export default function HymnsScreen({ navigation }: HymnsScreenProps) {
     const colorScheme = useColorScheme();

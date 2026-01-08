@@ -28,6 +28,8 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
         notificationsEnabled: true,
         notificationTime: '08:00',
     });
+    const [bibleStats, setBibleStats] = useState({ verses: 0, chapters: 0, books: 0 });
+    const [loadingBible, setLoadingBible] = useState(false);
 
     const theme = createTheme(colorScheme === 'dark');
 
@@ -93,6 +95,53 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
     const testNotification = async () => {
         await sendTestNotification();
         Alert.alert('✅ Sucesso', 'Notificação de teste enviada! Aguarde alguns segundos.');
+    };
+
+    const loadBibleStats = async () => {
+        try {
+            const { getBibleStats } = await import('../services/completeBibleLoader');
+            const stats = await getBibleStats();
+            setBibleStats({
+                verses: stats.totalVerses,
+                chapters: stats.totalChapters,
+                books: stats.booksLoaded
+            });
+        } catch (error) {
+            console.error('Error loading Bible stats:', error);
+        }
+    };
+
+    const forceReloadBible = async () => {
+        Alert.alert(
+            '🔄 Recarregar Bíblia',
+            'Isso irá baixar TODA a Bíblia novamente (pode levar alguns minutos). Os seus favoritos e destaques NÃO serão perdidos.\n\nDeseja continuar?',
+            [
+                { text: 'Cancelar', style: 'cancel' },
+                {
+                    text: 'Recarregar',
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            setLoadingBible(true);
+                            const db = getDatabase();
+                            await db.runAsync('DELETE FROM verses');
+                            console.log('Verses deleted, starting download...');
+
+                            const { loadCompleteBible } = await import('../services/completeBibleLoader');
+                            await loadCompleteBible();
+
+                            await loadBibleStats();
+                            setLoadingBible(false);
+                            Alert.alert('✅ Concluído!', 'Bíblia recarregada com sucesso!');
+                        } catch (error) {
+                            setLoadingBible(false);
+                            console.error('Error reloading Bible:', error);
+                            Alert.alert('❌ Erro', 'Não foi possível recarregar a Bíblia.');
+                        }
+                    }
+                }
+            ]
+        );
     };
 
     return (
@@ -181,6 +230,44 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
                             </Text>
                         </TouchableOpacity>
                     )}
+                </View>
+
+                {/* Bible Database */}
+                <View style={styles.section}>
+                    <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+                        Banco de Dados Bíblico
+                    </Text>
+
+                    <View style={[styles.statsBox, { backgroundColor: theme.colors.surface }]}>
+                        <Text style={[styles.statsText, { color: theme.colors.text }]}>
+                            📖 {bibleStats.books} livros carregados
+                        </Text>
+                        <Text style={[styles.statsText, { color: theme.colors.text }]}>
+                            📄 {bibleStats.chapters} capítulos
+                        </Text>
+                        <Text style={[styles.statsText, { color: theme.colors.text }]}>
+                            ✍️ {bibleStats.verses.toLocaleString('pt-BR')} versículos
+                        </Text>
+                    </View>
+
+                    <TouchableOpacity
+                        style={[styles.reloadButton, {
+                            backgroundColor: theme.colors.surface,
+                            borderWidth: 2,
+                            borderColor: theme.colors.primary,
+                            opacity: loadingBible ? 0.5 : 1
+                        }]}
+                        onPress={forceReloadBible}
+                        disabled={loadingBible}
+                    >
+                        <Text style={[styles.reloadButtonText, { color: theme.colors.primary }]}>
+                            {loadingBible ? '⏳ Carregando...' : '🔄 Recarregar Bíblia Completa'}
+                        </Text>
+                    </TouchableOpacity>
+
+                    <Text style={[styles.backupHint, { color: theme.colors.textSecondary }]}>
+                        💡 Use apenas se a Bíblia não carregar corretamente ou estiver incompleta.
+                    </Text>
                 </View>
 
                 {/* Backup & Restore */}
@@ -373,5 +460,23 @@ const styles = StyleSheet.create({
         marginTop: 8,
         fontStyle: 'italic',
         lineHeight: 18,
+    },
+    statsBox: {
+        padding: 16,
+        borderRadius: 12,
+        gap: 8,
+    },
+    statsText: {
+        fontSize: 15,
+        fontWeight: '500',
+    },
+    reloadButton: {
+        padding: 16,
+        borderRadius: 12,
+        alignItems: 'center',
+    },
+    reloadButtonText: {
+        fontSize: 16,
+        fontWeight: '600',
     },
 });

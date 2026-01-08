@@ -1,9 +1,10 @@
-// Complete Bible Loader Service
-// Downloads and inserts complete Bible on first run
+// Complete Bible Loader Service  
+// Loads complete Bible from bundled JSON for 100% offline functionality
 
 import { getDatabase } from '../database/init';
+import bibleDataRaw from '../data/bible.json';
 
-const BIBLE_JSON_URL = 'https://raw.githubusercontent.com/thiagobodruk/biblia/master/json/acf.json';
+// Bible data is bundled in the app for offline use
 
 interface BibleBook {
     abbrev: string;
@@ -30,17 +31,20 @@ export async function loadCompleteBible(
     onProgress?: (current: number, total: number, bookName: string) => void
 ): Promise<boolean> {
     try {
-        console.log('📥 Downloading complete Bible...');
+        console.log('📖 Loading complete Bible from bundled data...');
+        const startTime = Date.now();
 
-        // Download JSON
-        const response = await fetch(BIBLE_JSON_URL);
-        if (!response.ok) {
-            console.error('Failed to download Bible');
+        // Use pre-loaded Bible data (bundled in app)
+        const bibleData = bibleDataRaw as BibleBook[];
+
+        console.log(`📄 Loaded ${bibleData.length} books from bundled JSON`);
+
+        if (!Array.isArray(bibleData) || bibleData.length === 0) {
+            console.error('Invalid Bible data format');
             return false;
         }
 
-        const bibleData: BibleBook[] = await response.json();
-        console.log(`📖 Downloaded ${bibleData.length} books`);
+        console.log(`📖 Parsed ${bibleData.length} books in ${(Date.now() - startTime) / 1000}s`);
 
         const db = getDatabase();
         const totalBooks = bibleData.length;
@@ -78,27 +82,35 @@ export async function loadCompleteBible(
 
             const bookName = bookInfo?.name || book.abbrev;
 
-            // Insert all chapters and verses
-            for (let chapterIdx = 0; chapterIdx < book.chapters.length; chapterIdx++) {
-                const chapterNumber = chapterIdx + 1;
-                const verses = book.chapters[chapterIdx];
+            // Use transaction for each book with batch inserts
+            await db.withTransactionAsync(async () => {
+                const batchSize = 100;
+                const allVerses: any[] = [];
 
-                for (let verseIdx = 0; verseIdx < verses.length; verseIdx++) {
-                    const verseNumber = verseIdx + 1;
-                    const verseText = verses[verseIdx];
+                // Collect all verses for this book
+                for (let chapterIdx = 0; chapterIdx < book.chapters.length; chapterIdx++) {
+                    const chapterNumber = chapterIdx + 1;
+                    const verses = book.chapters[chapterIdx];
 
-                    // Insert verse
+                    for (let verseIdx = 0; verseIdx < verses.length; verseIdx++) {
+                        const verseNumber = verseIdx + 1;
+                        const verseText = verses[verseIdx];
+                        allVerses.push([bookId, chapterNumber, verseNumber, verseText, 'acf']);
+                    }
+                }
+
+                // Insert in batches for better performance
+                for (let i = 0; i < allVerses.length; i += batchSize) {
+                    const batch = allVerses.slice(i, i + batchSize);
+                    const placeholders = batch.map(() => '(?, ?, ?, ?, ?)').join(', ');
+                    const flatValues = batch.flat();
+
                     await db.runAsync(
-                        `INSERT OR REPLACE INTO verses (book_id, chapter_number, verse_number, text, version_id)
-             VALUES (?, ?, ?, ?, ?)`,
-                        bookId,
-                        chapterNumber,
-                        verseNumber,
-                        verseText,
-                        'acf'
+                        `INSERT OR REPLACE INTO verses (book_id, chapter_number, verse_number, text, version_id) VALUES ${placeholders}`,
+                        ...flatValues
                     );
                 }
-            }
+            });
 
             processedBooks++;
 
@@ -109,7 +121,8 @@ export async function loadCompleteBible(
             console.log(`✅ Loaded: ${bookName} (${processedBooks}/${totalBooks})`);
         }
 
-        console.log('🎉 Complete Bible loaded successfully!');
+        const totalTime = (Date.now() - startTime) / 1000;
+        console.log(`🎉 Complete Bible loaded successfully in ${totalTime}s!`);
         return true;
 
     } catch (error) {
@@ -140,9 +153,26 @@ export async function getBibleStats(): Promise<{
         'SELECT COUNT(DISTINCT book_id) as count FROM verses'
     ) as { count: number };
 
-    return {
+    const stats = {
         totalVerses: versesResult.count,
         totalChapters: chaptersResult.count,
         booksLoaded: booksResult.count,
     };
+
+    // Log offline readiness status
+    console.log('\n📊 STATUS DO BANCO DE DADOS:');
+    console.log(`📖 Livros: ${stats.booksLoaded} / 66`);
+    console.log(`📄 Capítulos: ${stats.totalChapters} / 1,189`);
+    console.log(`✍️ Versículos: ${stats.totalVerses.toLocaleString('pt-BR')} / 31,102`);
+
+    const percentComplete = ((stats.totalVerses / 31102) * 100).toFixed(1);
+    console.log(`📈 Progresso: ${percentComplete}%`);
+
+    if (stats.totalVerses >= 31000) {
+        console.log('✅ BÍBLIA COMPLETA - Pronta para uso OFFLINE');
+    } else {
+        console.log('⚠️ BÍBLIA INCOMPLETA - Funcionamento offline comprometido');
+    }
+
+    return stats;
 }

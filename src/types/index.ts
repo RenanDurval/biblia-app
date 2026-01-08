@@ -94,7 +94,7 @@ import { Hymn } from '../services/hymnService';
 export type RootStackParamList = {
     Home: undefined;
     Library: { filter?: 'bible' | 'torah' | 'quran' | 'apocrypha' };
-    Reading: { bookId: number; chapterNumber: number };
+    Reading: { bookId: number; chapterNumber: number; verseNumber?: number };
     Search: undefined;
     Bookmarks: undefined;
     Progress: undefined;

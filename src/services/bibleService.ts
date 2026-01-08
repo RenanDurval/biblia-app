@@ -16,7 +16,7 @@ export async function getBibleVersions() {
 /**
  * Get all books for a specific testament
  */
-export async function getBooks(testament?: 'OT' | 'NT' | 'APOCRYPHA' | 'TORAH'): Promise<Book[]> {
+export async function getBooks(testament?: 'OT' | 'NT' | 'APOCRYPHA' | 'TORAH' | 'QURAN'): Promise<Book[]> {
     const db = getDatabase();
 
     let query = 'SELECT * FROM books';
@@ -57,12 +57,20 @@ export async function getChapterVerses(
     const db = getDatabase();
 
     const query = `
-    SELECT * FROM verses 
+    SELECT 
+      id,
+      book_id AS bookId,
+      chapter_number AS chapterNumber,
+      verse_number AS verseNumber,
+      text,
+      version_id AS versionId
+    FROM verses 
     WHERE book_id = ? AND chapter_number = ? AND version_id = ?
     ORDER BY verse_number
   `;
 
     const result = await db.getAllAsync(query, [bookId, chapterNumber, versionId]);
+    console.log(`📖 Loaded ${result.length} verses for book ${bookId}, chapter ${chapterNumber}`);
     return result as Verse[];
 }
 
@@ -78,7 +86,14 @@ export async function getVerse(
     const db = getDatabase();
 
     const query = `
-    SELECT * FROM verses 
+    SELECT 
+      id,
+      book_id AS bookId,
+      chapter_number AS chapterNumber,
+      verse_number AS verseNumber,
+      text,
+      version_id AS versionId
+    FROM verses 
     WHERE book_id = ? AND chapter_number = ? AND verse_number = ? AND version_id = ?
   `;
 
@@ -96,7 +111,14 @@ export async function searchVerses(
     const db = getDatabase();
 
     const query = `
-    SELECT * FROM verses 
+    SELECT 
+      id,
+      book_id AS bookId,
+      chapter_number AS chapterNumber,
+      verse_number AS verseNumber,
+      text,
+      version_id AS versionId
+    FROM verses 
     WHERE version_id = ? AND LOWER(text) LIKE LOWER(?)
     LIMIT 100
   `;
@@ -113,7 +135,14 @@ export async function getRandomVerse(versionId: string = 'acf'): Promise<Verse |
     const db = getDatabase();
 
     const query = `
-    SELECT * FROM verses 
+    SELECT 
+      id,
+      book_id AS bookId,
+      chapter_number AS chapterNumber,
+      verse_number AS verseNumber,
+      text,
+      version_id AS versionId
+    FROM verses 
     WHERE version_id = ?
     ORDER BY RANDOM()
     LIMIT 1

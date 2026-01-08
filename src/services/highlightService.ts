@@ -76,7 +76,15 @@ export async function getChapterHighlights(
 ): Promise<VerseHighlight[]> {
     const db = getDatabase();
     const result = await db.getAllAsync(
-        'SELECT * FROM verse_highlights WHERE book_id = ? AND chapter_number = ?',
+        `SELECT 
+            id,
+            book_id AS bookId,
+            chapter_number AS chapterNumber,
+            verse_number AS verseNumber,
+            color,
+            created_at AS createdAt
+        FROM verse_highlights 
+        WHERE book_id = ? AND chapter_number = ?`,
         bookId,
         chapterNumber
     );
@@ -93,7 +101,15 @@ export async function getVerseHighlight(
 ): Promise<VerseHighlight | null> {
     const db = getDatabase();
     const result = await db.getFirstAsync(
-        'SELECT * FROM verse_highlights WHERE book_id = ? AND chapter_number = ? AND verse_number = ?',
+        `SELECT 
+            id,
+            book_id AS bookId,
+            chapter_number AS chapterNumber,
+            verse_number AS verseNumber,
+            color,
+            created_at AS createdAt
+        FROM verse_highlights 
+        WHERE book_id = ? AND chapter_number = ? AND verse_number = ?`,
         bookId,
         chapterNumber,
         verseNumber
@@ -107,7 +123,15 @@ export async function getVerseHighlight(
 export async function getAllHighlights(): Promise<VerseHighlight[]> {
     const db = getDatabase();
     const result = await db.getAllAsync(
-        'SELECT * FROM verse_highlights ORDER BY created_at DESC'
+        `SELECT 
+            id,
+            book_id AS bookId,
+            chapter_number AS chapterNumber,
+            verse_number AS verseNumber,
+            color,
+            created_at AS createdAt
+        FROM verse_highlights 
+        ORDER BY created_at DESC`
     );
     return result as VerseHighlight[];
 }

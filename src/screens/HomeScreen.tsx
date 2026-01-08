@@ -16,9 +16,10 @@ import DailyVerseCard from '../components/DailyVerseCard';
 import { initDatabase } from '../database/init';
 import { requestNotificationPermissions, scheduleDailyVerseNotification } from '../services/notificationService';
 
-interface HomeScreenProps {
-    navigation: any;
-}
+import { StackScreenProps } from '@react-navigation/stack';
+import { RootStackParamList } from '../types';
+
+type HomeScreenProps = StackScreenProps<RootStackParamList, 'Home'>;
 
 export default function HomeScreen({ navigation }: HomeScreenProps) {
     const colorScheme = useColorScheme();

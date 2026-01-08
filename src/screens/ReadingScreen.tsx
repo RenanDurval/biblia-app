@@ -14,25 +14,55 @@ import { addBookmark, removeBookmarkByVerse, isBookmarked } from '../services/bo
 import { addReadingHistory } from '../services/historyService';
 import { Verse } from '../types';
 
-interface ReadingScreenProps {
-    navigation: any;
-    route: any;
-}
+import { StackScreenProps } from '@react-navigation/stack';
+import { RootStackParamList } from '../types';
+import { Book } from '../types'; // Assuming Book type is available
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-export default function ReadingScreen({ navigation, route }: ReadingScreenProps) {
+type ReadingScreenProps = StackScreenProps<RootStackParamList, 'Reading'>;
+
+export default function ReadingScreen({ route, navigation }: ReadingScreenProps) {
     const colorScheme = useColorScheme();
-    const [bookId, setBookId] = useState(route.params?.bookId || 1);
+    const insets = useSafeAreaInsets();
+    const bookId = route.params?.bookId || 1;
+    const initialVerseNumber = route.params?.verseNumber; // Get verse number from navigation
     const [chapterNumber, setChapterNumber] = useState(route.params?.chapterNumber || 1);
     const [versionId, setVersionId] = useState('acf');
     const [selectedVerse, setSelectedVerse] = useState<Verse | null>(null);
     const [verseBookmarked, setVerseBookmarked] = useState(false);
+    const [book, setBook] = useState<Book | null>(null);
 
     const theme = createTheme(colorScheme === 'dark');
+
+    // Load book data for chapter validation
+    useEffect(() => {
+        const loadBook = async () => {
+            const { getBook } = await import('../services/bibleService');
+            const bookData = await getBook(bookId);
+            setBook(bookData);
+        };
+        loadBook();
+    }, [bookId]);
+
+    // Auto-select verse when navigating from bookmarks
+    useEffect(() => {
+        if (initialVerseNumber) {
+            const selectVerse = async () => {
+                const { getVerse } = await import('../services/bibleService');
+                const verse = await getVerse(bookId, chapterNumber, initialVerseNumber, versionId);
+                if (verse) {
+                    setSelectedVerse(verse);
+                }
+            };
+            selectVerse();
+        }
+    }, [initialVerseNumber, bookId, chapterNumber, versionId]);
 
     // Track reading history
     useEffect(() => {
         addReadingHistory(bookId, chapterNumber);
     }, [bookId, chapterNumber]);
+
 
     // Check if selected verse is bookmarked
     useEffect(() => {
@@ -77,14 +107,48 @@ export default function ReadingScreen({ navigation, route }: ReadingScreenProps)
         }
     };
 
-    const goToPreviousChapter = () => {
+    const goToPreviousChapter = async () => {
         if (chapterNumber > 1) {
+            // Navigate to previous chapter in same book
             setChapterNumber(chapterNumber - 1);
+        } else if (bookId > 1) {
+            // At chapter 1, go to last chapter of previous book
+            const { getBook } = await import('../services/bibleService');
+            const previousBook = await getBook(bookId - 1);
+            if (previousBook) {
+                navigation.navigate('Reading', {
+                    bookId: bookId - 1,
+                    chapterNumber: previousBook.chapters,
+                });
+            }
         }
     };
 
-    const goToNextChapter = () => {
-        setChapterNumber(chapterNumber + 1);
+    const goToNextChapter = async () => {
+        console.log('📖 Next button pressed. Current:', { bookId, chapterNumber, bookChapters: book?.chapters });
+
+        if (book && chapterNumber < book.chapters) {
+            // Navigate to next chapter in same book
+            console.log('✅ Going to next chapter in same book');
+            setChapterNumber(chapterNumber + 1);
+        } else if (book && chapterNumber === book.chapters && bookId < 66) {
+            // At last chapter, go to first chapter of next book
+            console.log('✅ Going to next book');
+            navigation.navigate('Reading', {
+                bookId: bookId + 1,
+                chapterNumber: 1,
+            });
+        } else {
+            console.log('⚠️ Cannot navigate: book data not loaded or at end of Bible');
+        }
+    };
+
+    const handleGoBack = () => {
+        if (navigation.canGoBack()) {
+            navigation.goBack();
+        } else {
+            navigation.navigate('Home');
+        }
     };
 
     return (
@@ -92,7 +156,7 @@ export default function ReadingScreen({ navigation, route }: ReadingScreenProps)
             <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
                 {/* Header */}
                 <View style={[styles.header, { borderBottomColor: theme.colors.border }]}>
-                    <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+                    <TouchableOpacity onPress={handleGoBack} style={styles.backButton}>
                         <Text style={[styles.backButtonText, { color: theme.colors.primary }]}>
                             ‹ Voltar
                         </Text>
@@ -121,7 +185,14 @@ export default function ReadingScreen({ navigation, route }: ReadingScreenProps)
                 )}
 
                 {/* Navigation Footer */}
-                <View style={[styles.footer, { backgroundColor: theme.colors.surface, borderTopColor: theme.colors.border }]}>
+                <View style={[
+                    styles.footer,
+                    {
+                        backgroundColor: theme.colors.surface,
+                        borderTopColor: theme.colors.border,
+                        paddingBottom: Math.max(insets.bottom, 12) // Safe area + minimum padding
+                    }
+                ]}>
                     <TouchableOpacity
                         style={[styles.navButton, chapterNumber === 1 && styles.navButtonDisabled]}
                         onPress={goToPreviousChapter}

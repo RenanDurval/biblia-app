@@ -165,6 +165,16 @@ CREATE TABLE IF NOT EXISTS user_reading_progress (
   FOREIGN KEY (plan_id) REFERENCES reading_plans(id)
 );
 
+-- Study Materials (PDF Imports)
+CREATE TABLE IF NOT EXISTS study_materials (
+  id TEXT PRIMARY KEY,
+  title TEXT NOT NULL,
+  content TEXT NOT NULL,
+  page_count INTEGER NOT NULL,
+  info TEXT,
+  added_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Create indexes for performance
 CREATE INDEX IF NOT EXISTS idx_verses_book_chapter ON verses(book_id, chapter_number);
 CREATE INDEX IF NOT EXISTS idx_verses_version ON verses(version_id);
@@ -173,6 +183,7 @@ CREATE INDEX IF NOT EXISTS idx_history_timestamp ON reading_history(timestamp);
 CREATE INDEX IF NOT EXISTS idx_hymns_number ON hymns(number);
 CREATE INDEX IF NOT EXISTS idx_reading_plan_days ON reading_plan_days(plan_id, day_number);
 CREATE INDEX IF NOT EXISTS idx_user_reading_progress ON user_reading_progress(plan_id);
+CREATE INDEX IF NOT EXISTS idx_materials_title ON study_materials(title);
 `;
 
 export const insertInitialData = `

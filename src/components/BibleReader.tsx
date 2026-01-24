@@ -1,6 +1,4 @@
-// Bible Reader Component with Highlights Support
-// Main component for reading Bible text with responsive design and verse highlighting
-
+// Bible Reader Component with Highlights and Font Size support
 import React, { useState, useEffect } from 'react';
 import {
     View,
@@ -22,6 +20,7 @@ interface BibleReaderProps {
     chapterNumber: number;
     versionId?: string;
     theme?: 'light' | 'dark';
+    fontSize?: number;
     onVersePress?: (verse: Verse) => void;
 }
 
@@ -30,6 +29,7 @@ export default function BibleReader({
     chapterNumber,
     versionId = 'acf',
     theme: themeProp = 'light',
+    fontSize = 18,
     onVersePress,
 }: BibleReaderProps) {
     const [verses, setVerses] = useState<Verse[]>([]);
@@ -48,14 +48,11 @@ export default function BibleReader({
     const loadContent = async () => {
         try {
             setLoading(true);
-
             const [versesData, bookData, highlightsData] = await Promise.all([
                 getChapterVerses(bookId, chapterNumber, versionId),
                 getBook(bookId),
                 getChapterHighlights(bookId, chapterNumber),
             ]);
-
-            // Bible is now pre-loaded from bundled JSON, no need to download
             setVerses(versesData);
             setBook(bookData);
             setHighlights(highlightsData);
@@ -77,15 +74,12 @@ export default function BibleReader({
 
     const handleHighlightColor = async (color: keyof typeof HIGHLIGHT_COLORS) => {
         if (!highlightMenuVerse) return;
-
         await addHighlight(
             highlightMenuVerse.bookId,
             highlightMenuVerse.chapterNumber,
             highlightMenuVerse.verseNumber,
             color
         );
-
-        // Reload highlights
         const newHighlights = await getChapterHighlights(bookId, chapterNumber);
         setHighlights(newHighlights);
         setHighlightMenuVerse(null);
@@ -93,14 +87,11 @@ export default function BibleReader({
 
     const handleRemoveHighlight = async () => {
         if (!highlightMenuVerse) return;
-
         await removeHighlight(
             highlightMenuVerse.bookId,
             highlightMenuVerse.chapterNumber,
             highlightMenuVerse.verseNumber
         );
-
-        // Reload highlights
         const newHighlights = await getChapterHighlights(bookId, chapterNumber);
         setHighlights(newHighlights);
         setHighlightMenuVerse(null);
@@ -114,23 +105,6 @@ export default function BibleReader({
         return (
             <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
                 <ActivityIndicator size="large" color={theme.colors.primary} />
-                <Text style={[styles.loadingText, { color: theme.colors.text }]}>
-                    Carregando...
-                </Text>
-            </View>
-        );
-    }
-
-
-
-    if (verses.length === 0) {
-        return (
-            <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-                <Text style={[styles.errorText, { color: theme.colors.textSecondary }]}>
-                    ❌ Conteúdo não disponível
-                    {'\n\n'}
-                    Este capítulo ainda não foi carregado no banco de dados.
-                </Text>
             </View>
         );
     }
@@ -141,17 +115,11 @@ export default function BibleReader({
                 style={[styles.scrollView, { backgroundColor: theme.colors.background }]}
                 contentContainerStyle={styles.contentContainer}
             >
-                {/* Chapter Header */}
                 <View style={styles.header}>
-                    <Text style={[styles.bookName, { color: theme.colors.primary }]}>
-                        {book?.name}
-                    </Text>
-                    <Text style={[styles.chapterNumber, { color: theme.colors.textSecondary }]}>
-                        Capítulo {chapterNumber}
-                    </Text>
+                    <Text style={[styles.bookName, { color: theme.colors.primary }]}>{book?.name}</Text>
+                    <Text style={[styles.chapterNumber, { color: theme.colors.textSecondary }]}>Capítulo {chapterNumber}</Text>
                 </View>
 
-                {/* Verses */}
                 <View style={styles.versesContainer}>
                     {verses.map((verse) => {
                         const highlight = getVerseHighlight(verse.verseNumber);
@@ -165,79 +133,38 @@ export default function BibleReader({
                                 onLongPress={() => handleVerseLongPress(verse)}
                                 style={[
                                     styles.verseContainer,
-                                    highlight && {
-                                        backgroundColor: HIGHLIGHT_COLORS[highlight.color],
-                                        borderRadius: 6,
-                                        paddingHorizontal: 8,
-                                    },
-                                    isSelected && !highlight && {
-                                        backgroundColor: theme.colors.primary + '20',
-                                        borderLeftColor: theme.colors.primary,
-                                        borderLeftWidth: 3,
-                                        paddingLeft: theme.spacing.sm,
-                                    },
+                                    highlight && { backgroundColor: HIGHLIGHT_COLORS[highlight.color] + '40', borderRadius: 4 },
+                                    isSelected && { backgroundColor: theme.colors.primary + '20', borderRadius: 4 }
                                 ]}
                             >
-                                <View style={styles.verseNumberContainer}>
-                                    <Text style={[styles.verseNumber, { color: theme.colors.primary }]}>
-                                        {verse.verseNumber}
+                                <Text style={[styles.verseText, { color: theme.colors.text, fontSize: fontSize }]}>
+                                    <Text style={[styles.verseNumber, { color: theme.colors.primary, fontSize: fontSize * 0.7 }]}>
+                                        {verse.verseNumber}{' '}
                                     </Text>
-                                </View>
-                                <Text style={[styles.verseText, { color: theme.colors.text }]}>
                                     {verse.text}
                                 </Text>
                             </TouchableOpacity>
                         );
                     })}
                 </View>
-
-                {/* Hint */}
-                <View style={styles.hintContainer}>
-                    <Text style={[styles.hintText, { color: theme.colors.textSecondary }]}>
-                        💡 Toque longo em um versículo para destacar
-                    </Text>
-                </View>
+                <View style={{ height: 100 }} />
             </ScrollView>
 
-            {/* Highlight Color Menu */}
-            <Modal
-                visible={!!highlightMenuVerse}
-                transparent
-                animationType="fade"
-                onRequestClose={() => setHighlightMenuVerse(null)}
-            >
-                <Pressable
-                    style={styles.modalOverlay}
-                    onPress={() => setHighlightMenuVerse(null)}
-                >
+            <Modal visible={!!highlightMenuVerse} transparent animationType="fade">
+                <Pressable style={styles.modalOverlay} onPress={() => setHighlightMenuVerse(null)}>
                     <View style={[styles.highlightMenu, { backgroundColor: theme.colors.surface }]}>
-                        <Text style={[styles.menuTitle, { color: theme.colors.text }]}>
-                            Destacar Versículo
-                        </Text>
-
-                        {(Object.keys(HIGHLIGHT_COLORS) as Array<keyof typeof HIGHLIGHT_COLORS>).map((colorKey) => (
-                            <TouchableOpacity
-                                key={colorKey}
-                                style={[styles.colorOption, { backgroundColor: HIGHLIGHT_COLORS[colorKey] }]}
-                                onPress={() => handleHighlightColor(colorKey)}
-                            >
-                                <Text style={styles.colorLabel}>
-                                    {colorKey === 'yellow' && '🟡 Amarelo'}
-                                    {colorKey === 'green' && '🟢 Verde'}
-                                    {colorKey === 'blue' && '🔵 Azul'}
-                                    {colorKey === 'pink' && '🔴 Rosa'}
-                                    {colorKey === 'orange' && '🟠 Laranja'}
-                                </Text>
-                            </TouchableOpacity>
-                        ))}
-
-                        <TouchableOpacity
-                            style={[styles.removeOption, { borderColor: theme.colors.border }]}
-                            onPress={handleRemoveHighlight}
-                        >
-                            <Text style={[styles.removeLabel, { color: theme.colors.textSecondary }]}>
-                                ❌ Remover Destaque
-                            </Text>
+                        <Text style={[styles.menuTitle, { color: theme.colors.text }]}>Destacar Versículo</Text>
+                        <View style={styles.colorRow}>
+                            {(Object.keys(HIGHLIGHT_COLORS) as Array<keyof typeof HIGHLIGHT_COLORS>).map((colorKey) => (
+                                <TouchableOpacity
+                                    key={colorKey}
+                                    style={[styles.colorCircle, { backgroundColor: HIGHLIGHT_COLORS[colorKey] }]}
+                                    onPress={() => handleHighlightColor(colorKey)}
+                                />
+                            ))}
+                        </View>
+                        <TouchableOpacity style={styles.removeBtn} onPress={handleRemoveHighlight}>
+                            <Text style={{ color: '#FF4444', fontWeight: 'bold' }}>Remover Destaque</Text>
                         </TouchableOpacity>
                     </View>
                 </Pressable>
@@ -247,128 +174,20 @@ export default function BibleReader({
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: 20,
-    },
-    scrollView: {
-        flex: 1,
-    },
-    contentContainer: {
-        padding: 16,
-    },
-    header: {
-        marginBottom: 24,
-        paddingBottom: 16,
-        borderBottomWidth: 2,
-        borderBottomColor: '#E8D7C3',
-    },
-    bookName: {
-        fontSize: 28,
-        fontWeight: 'bold',
-        marginBottom: 4,
-    },
-    chapterNumber: {
-        fontSize: 16,
-        fontWeight: '600',
-    },
-    versesContainer: {
-        gap: 16,
-    },
-    verseContainer: {
-        flexDirection: 'row',
-        paddingVertical: 12,
-        paddingHorizontal: 8,
-        borderRadius: 4,
-    },
-    verseNumberContainer: {
-        backgroundColor: 'rgba(139, 105, 20, 0.15)',
-        borderRadius: 12,
-        paddingHorizontal: 8,
-        paddingVertical: 2,
-        marginRight: 10,
-        minWidth: 28,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    verseNumber: {
-        fontSize: 12,
-        fontWeight: 'bold',
-        textAlign: 'center',
-    },
-    verseText: {
-        flex: 1,
-        fontSize: 17,
-        lineHeight: 28,
-        letterSpacing: 0.2,
-    },
-    hintContainer: {
-        marginTop: 32,
-        padding: 16,
-        alignItems: 'center',
-    },
-    hintText: {
-        fontSize: 14,
-        fontStyle: 'italic',
-        textAlign: 'center',
-    },
-    loadingText: {
-        marginTop: 16,
-        fontSize: 16,
-    },
-    downloadHint: {
-        marginTop: 8,
-        fontSize: 14,
-    },
-    errorText: {
-        fontSize: 16,
-        textAlign: 'center',
-        lineHeight: 24,
-    },
-    modalOverlay: {
-        flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.5)',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    highlightMenu: {
-        width: 280,
-        borderRadius: 16,
-        padding: 20,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
-        elevation: 10,
-    },
-    menuTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        marginBottom: 16,
-        textAlign: 'center',
-    },
-    colorOption: {
-        padding: 14,
-        borderRadius: 8,
-        marginBottom: 8,
-    },
-    colorLabel: {
-        fontSize: 16,
-        fontWeight: '600',
-        color: '#333',
-        textAlign: 'center',
-    },
-    removeOption: {
-        padding: 14,
-        borderRadius: 8,
-        borderWidth: 1,
-        marginTop: 8,
-    },
-    removeLabel: {
-        fontSize: 16,
-        fontWeight: '600',
-        textAlign: 'center',
-    },
+    container: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+    scrollView: { flex: 1 },
+    contentContainer: { padding: 16 },
+    header: { marginBottom: 20, alignItems: 'center' },
+    bookName: { fontSize: 24, fontWeight: 'bold' },
+    chapterNumber: { fontSize: 16 },
+    versesContainer: { gap: 12 },
+    verseContainer: { paddingVertical: 4, paddingHorizontal: 6 },
+    verseNumber: { fontWeight: 'bold' },
+    verseText: { lineHeight: 28 },
+    modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' },
+    highlightMenu: { width: '80%', padding: 20, borderRadius: 15, alignItems: 'center' },
+    menuTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 15 },
+    colorRow: { flexDirection: 'row', gap: 15, marginBottom: 20 },
+    colorCircle: { width: 40, height: 40, borderRadius: 20, borderWidth: 1, borderColor: '#DDD' },
+    removeBtn: { padding: 10 },
 });

@@ -28,6 +28,27 @@ export interface UserReadingProgress {
 /**
  * Get all reading plans
  */
+/**
+ * Get specific reading plan
+ */
+export async function getReadingPlan(planId: number): Promise<ReadingPlan | null> {
+    const db = getDatabase();
+    const plan = await db.getFirstAsync('SELECT * FROM reading_plans WHERE id = ?', planId);
+    return plan as ReadingPlan | null;
+}
+
+/**
+ * Get days for a reading plan
+ */
+export async function getReadingPlanDays(planId: number): Promise<ReadingPlanDay[]> {
+    const db = getDatabase();
+    const days = await db.getAllAsync('SELECT * FROM reading_plan_days WHERE plan_id = ? ORDER BY day_number', planId);
+    return days as ReadingPlanDay[];
+}
+
+/**
+ * Get all reading plans
+ */
 export async function getAllReadingPlans(): Promise<ReadingPlan[]> {
     const db = getDatabase();
     const plans = await db.getAllAsync('SELECT * FROM reading_plans');

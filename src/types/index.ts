@@ -1,4 +1,5 @@
 // Core Types for Biblical App
+import { Hymn } from '../services/hymnService';
 
 export interface BibleVersion {
     id: string;
@@ -64,21 +65,6 @@ export interface UserSettings {
     notificationTime: string;
 }
 
-export interface TalmudTractate {
-    id: number;
-    name: string;
-    nameHebrew: string;
-    order: string; // Seder (order/section)
-    pages: number;
-}
-
-export interface TalmudPage {
-    id: number;
-    tractateId: number;
-    pageNumber: string; // e.g., "2a", "2b"
-    text: string;
-}
-
 export interface VerseHighlight {
     id: string;
     bookId: number;
@@ -89,8 +75,6 @@ export interface VerseHighlight {
 }
 
 // Navigation Types
-import { Hymn } from '../services/hymnService';
-
 export type RootStackParamList = {
     Home: undefined;
     Library: { filter?: 'bible' | 'torah' | 'quran' | 'apocrypha' };
@@ -101,5 +85,8 @@ export type RootStackParamList = {
     Hymns: undefined;
     HymnViewer: { hymn: Hymn };
     ReadingPlans: undefined;
+    ReadingPlanViewer: { planId: number };
+    Materials: undefined;
+    MaterialViewer: { materialId: string; title: string };
     Settings: undefined;
 };

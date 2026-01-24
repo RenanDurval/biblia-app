@@ -15,6 +15,9 @@ import ProgressScreen from './src/screens/ProgressScreen';
 import HymnsScreen from './src/screens/HymnsScreen';
 import HymnViewerScreen from './src/screens/HymnViewerScreen';
 import ReadingPlansScreen from './src/screens/ReadingPlansScreen';
+import ReadingPlanViewerScreen from './src/screens/ReadingPlanViewerScreen';
+import MaterialsScreen from './src/screens/MaterialsScreen';
+import MaterialViewerScreen from './src/screens/MaterialViewerScreen';
 
 import { RootStackParamList } from './src/types';
 
@@ -39,6 +42,9 @@ export default function App() {
         <Stack.Screen name="Hymns" component={HymnsScreen} />
         <Stack.Screen name="HymnViewer" component={HymnViewerScreen} />
         <Stack.Screen name="ReadingPlans" component={ReadingPlansScreen} />
+        <Stack.Screen name="ReadingPlanViewer" component={ReadingPlanViewerScreen} />
+        <Stack.Screen name="Materials" component={MaterialsScreen} />
+        <Stack.Screen name="MaterialViewer" component={MaterialViewerScreen} />
         <Stack.Screen name="Settings" component={SettingsScreen} />
       </Stack.Navigator>
     </NavigationContainer>

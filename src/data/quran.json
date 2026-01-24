@@ -1,0 +1,41 @@
+[
+    {
+        "number": 1,
+        "name": "Al-Fatiha",
+        "nameArabic": "الفاتحة",
+        "verses": [
+            {
+                "number": 1,
+                "textArabic": "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ",
+                "textPortuguese": "Em nome de Deus, o Clemente, o Misericordioso."
+            },
+            {
+                "number": 2,
+                "textArabic": "الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ",
+                "textPortuguese": "Louvado seja Deus, Senhor do Universo."
+            },
+            {
+                "number": 3,
+                "textArabic": "الرَّحْمَٰنِ الرَّحِيمِ",
+                "textPortuguese": "Clemente, o Misericordioso."
+            }
+        ]
+    },
+    {
+        "number": 2,
+        "name": "Al-Baqarah",
+        "nameArabic": "البقرة",
+        "verses": [
+            {
+                "number": 1,
+                "textArabic": "الم",
+                "textPortuguese": "Alef, Lam, Mim."
+            },
+            {
+                "number": 2,
+                "textArabic": "ذَٰلِكَ الْكِتَابُ لَا رَيْبَ ۛ فِيهِ ۛ هُدًى لِّلْمُتَّقِينَ",
+                "textPortuguese": "Este  é o Livro que não oferece dúvida alguma, é orientação para os tementes a Deus."
+            }
+        ]
+    }
+]

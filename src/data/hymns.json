@@ -1,0 +1,32 @@
+[
+    {
+        "number": 1,
+        "title": "Jesus, Pastor Divinal",
+        "lyrics": "Jesus, Pastor divinal,\\nTu que sais da fonte pura.\\nNa mansão lá do eternal\\nPreparaste com ternura\\n\\nCoro:\\nPara nós lugar lá no céu,\\nRico, belo, eternal;\\nÉ de luz o santo véu\\nDa cidade divinal.",
+        "category": "Adoração"
+    },
+    {
+        "number": 2,
+        "title": "Vem, Pecador",
+        "lyrics": "Vem, pecador, sem mais tardar,\\nVem tal qual estás, a Jesus;\\nSeu sangue pode te lavar,\\nMorrendo por ti, na cruz!\\n\\nCoro:\\nVem! Vem! Vem! Oh! Vem!\\nVem tal qual estás, a Jesus!",
+        "category": "Evangelização"
+    },
+    {
+        "number": 3,
+        "title": "Chamado dos Gentios",
+        "lyrics": "Bendisse Deus aos gentios,\\nChamando-os ao seu amor;\\nSeu povo, outrora perdido,\\nEncontrou um Salvador.\\n\\nCoro:\\nOh! Quão gratos a Deus devemos ser,\\nQue nos deu a Jesus, nosso Rei;",
+        "category": "Gratidão"
+    },
+    {
+        "number": 4,
+        "title": "Vinde a Cristo",
+        "lyrics": "Ouço a voz de Jesus a chamar:\\n'Vem a mim; vem a mim!\\nQueres tu para sempre zombar,\\nDo amor, do amor?'\\n\\nCoro:\\nEis a voz de Jesus a chamar,\\nPor ti, por ti;",
+        "category": "Chamado"
+    },
+    {
+        "number": 5,
+        "title": "Conversão",
+        "lyrics": "Não há, na terra, som mais doce,\\nQue o nome de Jesus;\\nSom algum que mais conforte\\nQue seu nome nos conduz.\\n\\nCoro:\\nOh! Quão doce é o nome de Jesus!",
+        "category": "Conversão"
+    }
+]

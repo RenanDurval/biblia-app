@@ -53,24 +53,30 @@ export async function loadCompleteBible(
         const bookMapping: { [key: string]: number } = {
             'gn': 1, 'ex': 2, 'lv': 3, 'nm': 4, 'dt': 5, 'js': 6, 'jz': 7, 'rt': 8,
             '1sm': 9, '2sm': 10, '1rs': 11, '2rs': 12, '1cr': 13, '2cr': 14,
-            'ed': 15, 'ne': 16, 'et': 17, 'job': 18, 'sl': 19, 'pv': 20,
+            'ed': 15, 'ne': 16, 'et': 17, 'job': 18, 'jó': 18, 'sl': 19, 'pv': 20,
             'ec': 21, 'ct': 22, 'is': 23, 'jr': 24, 'lm': 25, 'ez': 26, 'dn': 27,
             'os': 28, 'jl': 29, 'am': 30, 'ob': 31, 'jn': 32, 'mq': 33, 'na': 34,
             'hc': 35, 'sf': 36, 'ag': 37, 'zc': 38, 'ml': 39,
-            'mt': 40, 'mc': 41, 'lc': 42, 'jo': 43, 'at': 44, 'rm': 45,
+            'mt': 40, 'mc': 41, 'lc': 42, 'jo': 43, 'at': 44, 'atos': 44, 'rm': 45,
             '1co': 46, '2co': 47, 'gl': 48, 'ef': 49, 'fp': 50, 'cl': 51,
             '1ts': 52, '2ts': 53, '1tm': 54, '2tm': 55, 'tt': 56, 'fm': 57,
             'hb': 58, 'tg': 59, '1pe': 60, '2pe': 61, '1jo': 62, '2jo': 63,
-            '3jo': 64, 'jd': 65, 'ap': 66
+            '3jo': 64, 'jd': 65, 'ap': 66,
+            // Common variations
+            '1 sm': 9, '2 sm': 10, '1 rs': 11, '2 rs': 12, '1 cr': 13, '2 cr': 14,
+            '1 co': 46, '2 co': 47, '1 ts': 52, '2 ts': 53, '1 tm': 54, '2 tm': 55,
+            '1 pe': 60, '2 pe': 61, '1 jo': 62, '2 jo': 63, '3 jo': 64
         };
 
         let processedBooks = 0;
 
         for (const book of bibleData) {
-            const bookId = bookMapping[book.abbrev.toLowerCase()];
+            // Normalize abbreviation
+            const normalizeAbbrev = (abbrev: string) => abbrev.toLowerCase().replace(/\s/g, '');
+            const bookId = bookMapping[normalizeAbbrev(book.abbrev)];
 
             if (!bookId) {
-                console.log(`⚠️ Skipping unknown book: ${book.abbrev}`);
+                console.warn(`⚠️ SKIPPING MISSING BOOK: '${book.abbrev}' (Normalized: '${normalizeAbbrev(book.abbrev)}')`);
                 continue;
             }
 

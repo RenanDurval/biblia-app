@@ -1,24 +1,39 @@
 // Database Initialization Module
 import * as SQLite from 'expo-sqlite';
+import { Platform } from 'react-native';
 import { createTables, insertInitialData } from './schema';
 import { bibleBooks } from '../data/bibleStructure';
+import { DatabaseInterface } from './databaseAdapter';
+import { WebDatabase } from './webDatabase';
 
-let database: SQLite.SQLiteDatabase | null = null;
+let database: DatabaseInterface | null = null; // Use Interface instead of direct type
 
 /**
  * Initialize the database
  * Creates tables and inserts initial data
  */
-export async function initDatabase(): Promise<SQLite.SQLiteDatabase> {
+export async function initDatabase(): Promise<DatabaseInterface> {
     if (database) {
         return database;
     }
 
     try {
-        // Open/create database
-        database = await SQLite.openDatabaseAsync('biblia.db');
+        console.log(`📖 Initializing Biblical Database (${Platform.OS})...`);
 
-        console.log('📖 Initializing Biblical Database...');
+        if (Platform.OS === 'web') {
+            database = new WebDatabase();
+            console.log('🌐 Web environment detected: Using WebMockDatabase');
+            // Web Mock doesnt need schema creation/inserts as logic is mocked
+            return database;
+        }
+
+        // Open/create database (NATIVE)
+        // Cast to any to bypass strict type checking if internal types diverge, but interface holds
+        const db = await SQLite.openDatabaseAsync('biblia.db');
+
+        // Wrap native db to match interface if needed, or if expo-sqlite matches allow direct.
+        // runAsync and getAllAsync are available in newer expo-sqlite versions.
+        database = db as unknown as DatabaseInterface;
 
         // Create tables
         await database.execAsync(createTables);
@@ -33,12 +48,19 @@ export async function initDatabase(): Promise<SQLite.SQLiteDatabase> {
         console.log('✅ Bible books structure loaded');
 
         // Insert sample verses for testing
+        // Dynamic import to avoid bundling issues if needed
         const { insertSampleVerses } = await import('../data/sampleVerses');
-        await insertSampleVerses(database);
+        await insertSampleVerses(db); // Pass native db here if sample verses expects it specific type
 
-        // Insert extended Bible content  
+        // Insert Extended Content
         const { insertExtendedContent } = await import('../data/extendedBibleContent');
-        await insertExtendedContent(database);
+        await insertExtendedContent(db);
+
+        // Load Study Materials (PDFs)
+        const { loadMaterials, isMaterialsLoaded } = await import('../services/materialLoader');
+        if (!(await isMaterialsLoaded())) {
+            await loadMaterials();
+        }
 
         console.log('🎉 Database initialized successfully!');
 
@@ -52,7 +74,7 @@ export async function initDatabase(): Promise<SQLite.SQLiteDatabase> {
 /**
  * Insert books data into database
  */
-async function insertBooksData(db: SQLite.SQLiteDatabase): Promise<void> {
+async function insertBooksData(db: DatabaseInterface): Promise<void> {
     const insertBookQuery = `
     INSERT OR IGNORE INTO books (id, name, testament, chapters, abbreviation, book_order)
     VALUES (?, ?, ?, ?, ?, ?)
@@ -74,7 +96,7 @@ async function insertBooksData(db: SQLite.SQLiteDatabase): Promise<void> {
 /**
  * Get database instance
  */
-export function getDatabase(): SQLite.SQLiteDatabase {
+export function getDatabase(): DatabaseInterface {
     if (!database) {
         throw new Error('Database not initialized. Call initDatabase() first.');
     }

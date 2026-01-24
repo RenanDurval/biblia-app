@@ -1,4 +1,4 @@
-// Library Screen - Browse all books
+// Library Screen - Browse all books with Search
 import React, { useState, useEffect } from 'react';
 import {
     View,
@@ -8,11 +8,11 @@ import {
     StyleSheet,
     useColorScheme,
     SafeAreaView,
+    TextInput,
 } from 'react-native';
 import { getBooks } from '../services/bibleService';
 import { Book } from '../types';
 import { createTheme } from '../styles/theme';
-// import AdBanner from '../components/AdBanner'; // Temporarily disabled for Expo Go
 
 import { StackScreenProps } from '@react-navigation/stack';
 import { RootStackParamList } from '../types';
@@ -22,6 +22,8 @@ type LibraryScreenProps = StackScreenProps<RootStackParamList, 'Library'>;
 export default function LibraryScreen({ navigation, route }: LibraryScreenProps) {
     const colorScheme = useColorScheme();
     const [books, setBooks] = useState<Book[]>([]);
+    const [filteredBooks, setFilteredBooks] = useState<Book[]>([]);
+    const [searchQuery, setSearchQuery] = useState('');
     const [filter, setFilter] = useState(route.params?.filter || 'all');
     const theme = createTheme(colorScheme === 'dark');
 
@@ -36,12 +38,13 @@ export default function LibraryScreen({ navigation, route }: LibraryScreenProps)
             if (filter === 'torah') {
                 testament = 'TORAH';
             } else if (filter === 'bible') {
-                // Get both OT and NT
                 const [ot, nt] = await Promise.all([
                     getBooks('OT'),
                     getBooks('NT'),
                 ]);
-                setBooks([...ot, ...nt]);
+                const combined = [...ot, ...nt];
+                setBooks(combined);
+                setFilteredBooks(combined);
                 return;
             } else if (filter === 'apocrypha') {
                 testament = 'APOCRYPHA';
@@ -51,8 +54,22 @@ export default function LibraryScreen({ navigation, route }: LibraryScreenProps)
 
             const booksData = await getBooks(testament);
             setBooks(booksData);
+            setFilteredBooks(booksData);
         } catch (error) {
             console.error('Error loading books:', error);
+        }
+    };
+
+    const handleSearch = (text: string) => {
+        setSearchQuery(text);
+        if (text.trim() === '') {
+            setFilteredBooks(books);
+        } else {
+            const filtered = books.filter(book =>
+                book.name.toLowerCase().includes(text.toLowerCase()) ||
+                book.abbreviation.toLowerCase().includes(text.toLowerCase())
+            );
+            setFilteredBooks(filtered);
         }
     };
 
@@ -88,26 +105,42 @@ export default function LibraryScreen({ navigation, route }: LibraryScreenProps)
         <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
             <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
                 <View style={styles.header}>
-                    <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-                        <Text style={[styles.backButtonText, { color: theme.colors.primary }]}>‹ Voltar</Text>
-                    </TouchableOpacity>
+                    <View style={styles.headerTop}>
+                        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+                            <Text style={[styles.backButtonText, { color: theme.colors.primary }]}>‹ Voltar</Text>
+                        </TouchableOpacity>
+                        <Text style={[styles.count, { color: theme.colors.textSecondary }]}>
+                            {filteredBooks.length} {filteredBooks.length === 1 ? 'livro' : 'livros'}
+                        </Text>
+                    </View>
                     <Text style={[styles.title, { color: theme.colors.text }]}>
                         {getTitle()}
                     </Text>
-                    <Text style={[styles.count, { color: theme.colors.textSecondary }]}>
-                        {books.length} {books.length === 1 ? 'livro' : 'livros'}
-                    </Text>
+
+                    <TextInput
+                        style={[styles.searchInput, {
+                            backgroundColor: theme.colors.surface,
+                            color: theme.colors.text,
+                            borderColor: theme.colors.primary + '40'
+                        }]}
+                        placeholder="Buscar livro..."
+                        placeholderTextColor={theme.colors.textSecondary}
+                        value={searchQuery}
+                        onChangeText={handleSearch}
+                    />
                 </View>
 
                 <FlatList
-                    data={books}
+                    data={filteredBooks}
                     renderItem={renderBook}
                     keyExtractor={(item) => item.id.toString()}
                     contentContainerStyle={styles.listContainer}
+                    ListEmptyComponent={
+                        <View style={styles.emptyContainer}>
+                            <Text style={{ color: theme.colors.textSecondary }}>Nenhum livro encontrado</Text>
+                        </View>
+                    }
                 />
-
-                {/* Ad Banner - Temporarily disabled for Expo Go */}
-                {/* <AdBanner /> */}
             </View>
         </SafeAreaView>
     );
@@ -123,8 +156,13 @@ const styles = StyleSheet.create({
         borderBottomWidth: 1,
         borderBottomColor: '#E8D7C3',
     },
-    backButton: {
+    headerTop: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
         marginBottom: 8,
+    },
+    backButton: {
     },
     backButtonText: {
         fontSize: 18,
@@ -133,10 +171,16 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 28,
         fontWeight: 'bold',
-        marginBottom: 4,
+        marginBottom: 12,
     },
     count: {
         fontSize: 14,
+    },
+    searchInput: {
+        padding: 10,
+        borderRadius: 10,
+        borderWidth: 1,
+        fontSize: 16,
     },
     listContainer: {
         padding: 16,
@@ -169,4 +213,8 @@ const styles = StyleSheet.create({
         fontSize: 28,
         fontWeight: '300',
     },
+    emptyContainer: {
+        alignItems: 'center',
+        marginTop: 50,
+    }
 });

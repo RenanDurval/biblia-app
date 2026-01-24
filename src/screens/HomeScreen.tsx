@@ -21,10 +21,26 @@ import { RootStackParamList } from '../types';
 
 type HomeScreenProps = StackScreenProps<RootStackParamList, 'Home'>;
 
+interface QuickAccessButtonProps {
+    icon: string;
+    title: string;
+    subtitle: string;
+    onPress: () => void;
+    theme: any; // Using any for theme to avoid complex type importation for now, but could be typed better
+}
+
+interface FeatureButtonProps {
+    icon: string;
+    title: string;
+    onPress: () => void;
+    theme: any;
+}
+
 export default function HomeScreen({ navigation }: HomeScreenProps) {
     const colorScheme = useColorScheme();
     const [loading, setLoading] = useState(true);
     const [loadingBible, setLoadingBible] = useState(false);
+    const [error, setError] = useState<string | null>(null);
     const [bibleProgress, setBibleProgress] = useState({ current: 0, total: 0, book: '' });
     const theme = createTheme(colorScheme === 'dark');
 
@@ -50,6 +66,27 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
                 setLoadingBible(false);
             }
 
+            // Load Apocrypha if not already loaded
+            const { isApocryphaLoaded, loadApocrypha } = await import('../services/apocryphaLoader');
+            if (!(await isApocryphaLoaded())) {
+                console.log('📜 Loading Apocrypha...');
+                await loadApocrypha();
+            }
+
+            // Load Quran if not already loaded
+            const { isQuranLoaded, loadQuran } = await import('../services/quranLoader');
+            if (!(await isQuranLoaded())) {
+                console.log('☪ Loading Quran...');
+                await loadQuran();
+            }
+
+            // Load Hymns if not already loaded
+            const { areHymnsLoaded, loadHymns } = await import('../services/hymnsLoader');
+            if (!(await areHymnsLoaded())) {
+                console.log('🎵 Loading Hymns...');
+                await loadHymns();
+            }
+
             // Request notification permissions
             const hasPermission = await requestNotificationPermissions();
             if (hasPermission) {
@@ -57,6 +94,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
             }
         } catch (error) {
             console.error('Error initializing app:', error);
+            setError('Falha ao inicializar o banco de dados. Por favor, reinicie o app.');
         } finally {
             setLoading(false);
         }
@@ -69,6 +107,23 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
                 <Text style={[styles.title, { color: theme.colors.text, marginTop: 16 }]}>
                     Inicializando...
                 </Text>
+            </View>
+        );
+    }
+
+    if (error) {
+        return (
+            <View style={[styles.container, { backgroundColor: theme.colors.background, padding: 20 }]}>
+                <Text style={[styles.title, { color: theme.colors.error, textAlign: 'center', marginBottom: 16 }]}>
+                    Erro
+                </Text>
+                <Text style={{ color: theme.colors.text, textAlign: 'center' }}>{error}</Text>
+                <TouchableOpacity
+                    style={{ marginTop: 24, padding: 12, backgroundColor: theme.colors.primary, borderRadius: 8 }}
+                    onPress={() => { setError(null); initializeApp(); }}
+                >
+                    <Text style={{ color: '#fff', fontWeight: 'bold' }}>Tentar Novamente</Text>
+                </TouchableOpacity>
             </View>
         );
     }
@@ -148,6 +203,12 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
                         theme={theme}
                     />
                     <FeatureButton
+                        icon="📚"
+                        title="Materiais de Estudo"
+                        onPress={() => navigation.navigate('Materials')}
+                        theme={theme}
+                    />
+                    <FeatureButton
                         icon="📊"
                         title="Progresso"
                         onPress={() => navigation.navigate('Progress')}
@@ -199,7 +260,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
 }
 
 // Quick Access Button Component
-function QuickAccessButton({ icon, title, subtitle, onPress, theme }: any) {
+function QuickAccessButton({ icon, title, subtitle, onPress, theme }: QuickAccessButtonProps) {
     return (
         <TouchableOpacity
             style={[styles.quickButton, { backgroundColor: theme.colors.surface }]}
@@ -218,7 +279,7 @@ function QuickAccessButton({ icon, title, subtitle, onPress, theme }: any) {
 }
 
 // Feature Button Component
-function FeatureButton({ icon, title, onPress, theme }: any) {
+function FeatureButton({ icon, title, onPress, theme }: FeatureButtonProps) {
     return (
         <TouchableOpacity
             style={[styles.featureButton, { backgroundColor: theme.colors.surface }]}
